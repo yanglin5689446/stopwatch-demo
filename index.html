@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
+  <title>Stopwatch</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    .full-height { height: 100vh; }
+    .button {
+      cursor: pointer;
+      transform-origin: .5;
+      transition: all .2s;
+    }
+    .button:hover {
+      transform: scale(1.2)
+    }
+    .minutes-seconds {
+      font-size: 10rem;
+    }
+    .mil {
+      font-size: 5rem;
+    }
+  </style>
+  <script>
+    class Timer {
+      constructor(refs) {
+        this.refs = refs
+        this.remainTime = 0
+        this.isStopped = true
+        this.registerEvent()
+      }
+      registerEvent(){
+        this.refs.controls.addEventListener('click', e => {
+          if(this.isStopped) this.run()
+          else this.stop()
+        })
+        this.refs.reset.addEventListener('click', e => {
+          this.remainTime = 0
+          this.updateDom()
+          this.stop()
+        })
+      }
+      updateDom(){
+        const minutes = Math.floor(this.remainTime / 60 / 1000) + ''
+        const seconds = Math.floor(this.remainTime / 1000 % 60) + ''
+        const mil = Math.floor(this.remainTime % 1000 / 10) + ''
+
+        // padStart only works on modern browsers
+        this.refs.timer.innerHTML = `
+          <span class='minutes-seconds'>
+            ${minutes.padStart(2, 0)}:${seconds.padStart(2, 0)}
+          </span>
+          <span class='mil'>
+            .${mil.padStart(2, 0)}
+          </span>
+        `
+      }
+      setTime(minutes = 1, seconds = 0){
+        this.remainTime = (60 * minutes + seconds) * 1000
+        this.updateDom()
+      }
+      run(){
+        this.isStopped = false
+        this.refs.controls.classList.remove('fa-play-circle')
+        this.refs.controls.classList.add('fa-pause-circle')
+        this.intervalId = setInterval(this.timerLoop.bind(this), 10)
+      }
+      stop(){
+        this.isStopped = true
+        this.refs.controls.classList.remove('fa-pause-circle')
+        this.refs.controls.classList.add('fa-play-circle')
+        clearInterval(this.intervalId)
+      }
+      timerLoop(){
+        this.remainTime -= 10
+        if(this.remainTime < 0)this.remainTime = 0
+        this.updateDom()
+      }
+    }
+
+    let timer
+    window.onload = () => {
+      timer = new Timer({
+        timer: document.getElementById('timer'),
+        controls: document.getElementById('controls'),
+        reset: document.getElementById('reset'),
+      })
+      timer.setTime()
+    }
+  </script>
+</head>
+<body>
+  <div class='fluid-container d-flex justify-content-center align-items-center full-height'>
+    <div>
+      <div id='timer'></div>
+      <div class='d-flex justify-content-center'>
+        <i id='controls' class='button fa fa-play-circle fa-2x mx-1'></i>
+        <i id='reset' class='button fa fa-stop-circle fa-2x mx-1'></i>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
